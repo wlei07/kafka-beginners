@@ -1,5 +1,6 @@
 package io.conduktor.demos.kafka;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
@@ -49,8 +50,16 @@ public class KafkaPropertiesBuilder {
         return this;
     }
 
-    public KafkaPropertiesBuilder autoOffsetReset() {
-        
+    @RequiredArgsConstructor
+    public enum AutoOffsetReset {
+        NONE("none"),
+        EARLIEST("earliest"),
+        LATEST("latest");
+        private final String value;
+    }
+
+    public KafkaPropertiesBuilder autoOffsetReset(AutoOffsetReset autoOffsetReset) {
+        properties.put("auto.offset.reset", autoOffsetReset.value);
         return this;
     }
 
