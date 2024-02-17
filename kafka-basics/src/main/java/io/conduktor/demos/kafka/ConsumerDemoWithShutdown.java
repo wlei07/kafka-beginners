@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.Properties;
 
 @Slf4j
-public class ConsumerDemo {
+public class ConsumerDemoWithShutdown {
     public static void main(String[] args) {
         log.info("I am a Kafka consumer!");
         String groupId = "my-java-application";
