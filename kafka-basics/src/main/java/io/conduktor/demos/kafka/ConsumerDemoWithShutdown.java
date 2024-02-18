@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.errors.WakeupException;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -28,14 +29,30 @@ public class ConsumerDemoWithShutdown {
         try (KafkaConsumer<String, String> kafkaConsumer = new KafkaConsumer<>(properties)) {
             // get a reference to the main thread
             final Thread mainThread = Thread.currentThread();
-            kafkaConsumer.subscribe(Collections.singletonList(topic));
-            while (true) {
-                log.info("Polling.");
-                ConsumerRecords<String, String> consumerRecords = kafkaConsumer.poll(Duration.ofSeconds(1));
-                for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
-                    log.info("Key: " + consumerRecord.key() + ", Value: " + consumerRecord.value());
-                    log.info("Partition: " + consumerRecord.partition() + ", Offset: " + consumerRecord.offset());
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                log.info("Detected a shutdown, let's exit by calling consumer.wakeup()...");
+                kafkaConsumer.wakeup();
+                // join the main thread to allow the execution of the code in the main thread.
+                try {
+                    mainThread.join();
+                } catch (InterruptedException e) {
+                    log.error("#######################");
+                    throw new RuntimeException(e);
                 }
+            }));
+            try {
+                kafkaConsumer.subscribe(Collections.singletonList(topic));
+                while (true) {
+                    ConsumerRecords<String, String> consumerRecords = kafkaConsumer.poll(Duration.ofSeconds(1));
+                    for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
+                        log.info("Key: " + consumerRecord.key() + ", Value: " + consumerRecord.value());
+                        log.info("Partition: " + consumerRecord.partition() + ", Offset: " + consumerRecord.offset());
+                    }
+                }
+            } catch (WakeupException e) {
+                log.error("Consumer is starting to shutdown.", e);
+            } catch (Exception e) {
+                log.error("Unexpected exception in the consumer", e);
             }
         }
     }
