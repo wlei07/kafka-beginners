@@ -1,16 +1,14 @@
 package io.leiwang.kafka.common;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
 
 public class KafkaPropertiesBuilder {
-    private static final String BOOTSTRAP_SERVERS_KEY = "bootstrap.servers";
-    private static final String KEY_SERIALIZER_KEY = "key.serializer";
-    private static final String VALUE_SERIALIZER_KEY = "value.serializer";
-
     private final Properties properties;
 
     public KafkaPropertiesBuilder() {
@@ -21,12 +19,12 @@ public class KafkaPropertiesBuilder {
     }
 
     public KafkaPropertiesBuilder bootStrapServersLocal() {
-        properties.put(BOOTSTRAP_SERVERS_KEY, "localhost:9092");
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         return this;
     }
 
     public KafkaPropertiesBuilder bootStrapServersUpstash() {
-        properties.put(BOOTSTRAP_SERVERS_KEY, "https://logical-cat-7023-eu2-kafka.upstash.io:9092");
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "https://logical-cat-7023-eu2-kafka.upstash.io:9092");
         properties.put("sasl.mechanism", "SCRAM-SHA-256");
         properties.put("security.protocol", "SASL_SSL");
         properties.put("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"bG9naWNhbC1jYXQtNzAyMySgZ_fvxBMUUMmLMhNybPGsZCGsCYIerpujqAStSYc\" password=\"YzZhMWIyYTMtZmQyNC00M2VjLWI5MjQtOGIxYzZjYTRhYjcx\";");
@@ -34,8 +32,8 @@ public class KafkaPropertiesBuilder {
     }
 
     public KafkaPropertiesBuilder keyValueStringSerializer() {
-        properties.put(KEY_SERIALIZER_KEY, StringSerializer.class.getName());
-        properties.put(VALUE_SERIALIZER_KEY, StringSerializer.class.getName());
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         return this;
     }
 
@@ -59,7 +57,7 @@ public class KafkaPropertiesBuilder {
     }
 
     public KafkaPropertiesBuilder autoOffsetReset(AutoOffsetReset autoOffsetReset) {
-        properties.put("auto.offset.reset", autoOffsetReset.value);
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset.value);
         return this;
     }
 
@@ -69,8 +67,8 @@ public class KafkaPropertiesBuilder {
     }
 
     private void verifyBootstrapServersPropertyEntry() {
-        if (!properties.containsKey(KafkaPropertiesBuilder.BOOTSTRAP_SERVERS_KEY)) {
-            throw new IllegalStateException("Please initialize property %s".formatted(KafkaPropertiesBuilder.BOOTSTRAP_SERVERS_KEY));
+        if (!properties.containsKey(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG)) {
+            throw new IllegalStateException("Please initialize property %s".formatted(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG));
         }
     }
 }
