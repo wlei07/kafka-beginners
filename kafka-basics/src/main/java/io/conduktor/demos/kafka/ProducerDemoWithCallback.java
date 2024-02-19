@@ -1,9 +1,9 @@
 package io.conduktor.demos.kafka;
 
+import io.leiwang.kafka.common.KafkaPropertiesBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 
 import java.util.Properties;
 
@@ -27,7 +27,7 @@ public class ProducerDemoWithCallback {
     }
 
     private static void sendMessages(KafkaProducer<String, String> kafkaProducer) {
-        for(int j=0;j<10;j++) {
+        for (int j = 0; j < 10; j++) {
             for (int i = 0; i < 30; i++) {
                 // create a producer record
                 ProducerRecord<String, String> producerRecord = new ProducerRecord<>("demo_java", "hello world " + i);

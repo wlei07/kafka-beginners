@@ -1,4 +1,4 @@
-package io.conduktor.demos.kafka;
+package io.leiwang.kafka.common;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.serialization.StringDeserializer;
