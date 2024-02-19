@@ -18,6 +18,8 @@ public class WikimediaChangesProducer {
         String topic = "wikimedia.recentchange";
         // TODO EventHandler
         String url = "https://stream.wikimedia.org/v2/stream/recentchange";
-        EventSource.Builder eventSourceBuilder = new EventSource.Builder()
+        EventSource.Builder eventSourceBuilder = new EventSource.Builder();
+        EventSource eventSource = eventSourceBuilder.build();
+        eventSource.start();
     }
 }
