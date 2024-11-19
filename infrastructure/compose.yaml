@@ -1,0 +1,13 @@
+services:
+  kafka:
+    image: 'bitnami/kafka:latest'
+    ports:
+      - '9092:9092'
+    environment:
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_KRAFT_CLUSTER_ID=NxBKhbUOROe9AEmaKO_tsg
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      # format: node_id@host_name:port
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091
+      # format: listener_name://[host_name]:port_number
+      - KAFKA_CFG_LISTENERS=PLAIN_TEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9092
