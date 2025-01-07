@@ -30,5 +30,7 @@ kafka-topics.sh --bootstrap-server localhost:9092 --alter --topic topic2 --parti
 # send a message to a topic
 kafka-console-producer.sh --bootstrap-server localhost:9092,localhost:9096 --topic topic2 
 # send a message to a topic, note that when a topic does not exist, it will create a new one by default (can be configured to disable it).
-kafka-console-producer.sh --bootstrap-server localhost:9092,localhost:9096 --topic topic2 --property "parse.key=true" --property "key.separator=:"
+kafka-console-producer.sh --bootstrap-server localhost:9092,localhost:9096 --topic topic2 --property parse.key=true --property key.separator=:
 
+# consume a message from a topic
+kafka-console-consumer.sh --topic topic2 --from-beginning --bootstrap-server localhost:9092,localhost:9094 --property print.key=true --property print.value=true
