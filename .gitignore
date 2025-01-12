@@ -1,11 +1,10 @@
-.gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+
+infrastructure/kafka-1/
+infrastructure/kafka-2/
+infrastructure/kafka-3/
+
+.gradle
 
 ### IntelliJ IDEA ###
 .idea/
-
-### own customization
-infrastructure/kafka-1/
