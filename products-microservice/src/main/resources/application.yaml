@@ -1,0 +1,19 @@
+app:
+  topic-name: product-created-events-topic
+
+server:
+  # port could be 0, which means any available port
+  port: 8080
+
+spring:
+  application:
+    name: products-microservice
+
+  kafka:
+    producer:
+      bootstrap-servers:
+        - localhost:9092
+        - localhost:9094
+      # # serializer is used to serialize key values to byte array before sending them over the network
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
