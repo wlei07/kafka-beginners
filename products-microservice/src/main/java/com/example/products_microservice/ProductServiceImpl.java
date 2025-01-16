@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +20,23 @@ public class ProductServiceImpl implements ProductService {
     private final KafkaTemplate<String, ProductCreatedEvent> kafkaTemplate;
 
     @Override
-    public String createProduct(CreateProductRequest product) {
+    public String createProduct(CreateProductRequest product) throws ExecutionException, InterruptedException {
+        return createProductSynchronously(product);
+    }
+
+    private String createProductSynchronously(CreateProductRequest product) throws InterruptedException, ExecutionException {
+        String productId = UUID.randomUUID().toString();
+        // TODO: persist product into database before publishing an event.
+        ProductCreatedEvent productCreatedEvent = new ProductCreatedEvent(productId, product.title(), product.price(), product.quantity());
+        log.info("Before publishing a {}", ProductCreatedEvent.class.getSimpleName());
+        SendResult<String, ProductCreatedEvent> result = kafkaTemplate.send(topicName, productId, productCreatedEvent).get();
+        log.info("Partition: {}", result.getRecordMetadata().partition());
+        log.info("Topic: {}", result.getRecordMetadata().topic());
+        log.info("Offset: {}", result.getRecordMetadata().offset());
+        return productId;
+    }
+
+    private String createProductAsynchronously(CreateProductRequest product) {
         String productId = UUID.randomUUID().toString();
         // TODO: persist product into database before publishing an event.
         ProductCreatedEvent productCreatedEvent = new ProductCreatedEvent(productId, product.title(), product.price(), product.quantity());
