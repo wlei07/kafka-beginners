@@ -17,7 +17,6 @@ public class KafkaConfig {
                 .name(topicName)
                 .partitions(3)
                 .replicas(3)
-                // spring.kafka.producer.acks=[all|1|0] for producer acknowledgement
                 // min.insync.replicas for number of producers that must response for acknowledgement
 
                 // spring.kafka.producer.reties=10, default is 2147483647
