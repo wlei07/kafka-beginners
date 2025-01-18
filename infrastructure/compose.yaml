@@ -1,3 +1,4 @@
+# chmod 777 ./kafka-1 ./kafka-2 ./kafka-3
 services:
   kafka-1:
     image: 'bitnami/kafka:3.9.0'
