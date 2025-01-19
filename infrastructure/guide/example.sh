@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# in ~/.bashrc, define alias to speedup:
+# alias kafka-configs='kafka-configs.sh --bootstrap-server localhost:9092,localhost:9094'
+# alias kafka-console-consumer='kafka-console-consumer.sh --bootstrap-server localhost:9092,localhost:9094'
+# alias kafka-topics='kafka-topics.sh --bootstrap-server localhost:9092,localhost:9094'
+
 # start natively installed kafka:
 export KAFKA_LOG4J_OPTS="-Dlog4j.configuration=file:/etc/kafka/log4j.properties"
 kafka-storage.sh random-uuid
@@ -13,7 +18,10 @@ kafka-server-stop.sh
 # when --partitions not specified, then num.partitions property is used (typical value is 1)
 # --replication-factor: how many copies of each partition are stored across different brokers
 # --bootstrap-server: it is recommended to provid at least 2, so that when one is offline, the other could process the request
-kafka-topics.sh --create --topic test-topic --partitions 3 --replication-factor 3 --bootstrap-server localhost:9092,localhost:9094
+# --min.insync.replicas: how many replicas must be in sync before a write is considered successful:
+# When a producer sends a message with acks=all (ensuring the message is written to all in-sync replicas),
+# this setting enforces how many replicas must be in-sync for the write to succeed.
+kafka-topics.sh --create --topic test-topic --partitions 3 --replication-factor 3 --bootstrap-server localhost:9092,localhost:9094 --config min.insync.replicas=2
 # list topics: display only names of the topics
 kafka-topics.sh --list --bootstrap-server localhost:9092
 # run list topics command from host of a docker compose file
@@ -33,4 +41,4 @@ kafka-console-producer.sh --bootstrap-server localhost:9092,localhost:9096 --top
 kafka-console-producer.sh --bootstrap-server localhost:9092,localhost:9096 --topic topic2 --property parse.key=true --property key.separator=:
 
 # consume a message from a topic
-kafka-console-consumer.sh --topic topic2 --from-beginning --bootstrap-server localhost:9092,localhost:9094 --property print.key=true --property print.value=true
+kafka-console-consumer --topic topic2 --from-beginning --property print.key=true --property print.value=true
