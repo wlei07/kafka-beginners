@@ -34,6 +34,8 @@ spring:
         delivery:
           timeout:
             ms: 120000
+        enable:
+          idempotence: true
         # spring.kafka.producer.properties.linger.ms: wait and batch, then send all batched messages in one time.
         linger:
           ms: 0
