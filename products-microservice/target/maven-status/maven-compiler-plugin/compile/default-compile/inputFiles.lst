@@ -1,0 +1,7 @@
+/home/lei/dev/kafka-beginners/products-microservice/src/main/java/com/example/products_microservice/CreateProductRequest.java
+/home/lei/dev/kafka-beginners/products-microservice/src/main/java/com/example/products_microservice/ErrorMessage.java
+/home/lei/dev/kafka-beginners/products-microservice/src/main/java/com/example/products_microservice/ProductController.java
+/home/lei/dev/kafka-beginners/products-microservice/src/main/java/com/example/products_microservice/ProductsMicroserviceApplication.java
+/home/lei/dev/kafka-beginners/products-microservice/src/main/java/com/example/products_microservice/KafkaConfig.java
+/home/lei/dev/kafka-beginners/products-microservice/src/main/java/com/example/products_microservice/ProductServiceImpl.java
+/home/lei/dev/kafka-beginners/products-microservice/src/main/java/com/example/products_microservice/ProductService.java

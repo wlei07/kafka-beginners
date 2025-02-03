@@ -1,5 +1,6 @@
 package com.example.products_microservice;
 
+import com.example.core.ProductCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

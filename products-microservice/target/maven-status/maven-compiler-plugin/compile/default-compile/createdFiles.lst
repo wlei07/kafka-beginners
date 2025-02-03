@@ -1,0 +1,7 @@
+com/example/products_microservice/ProductService.class
+com/example/products_microservice/KafkaConfig.class
+com/example/products_microservice/ErrorMessage.class
+com/example/products_microservice/ProductController.class
+com/example/products_microservice/CreateProductRequest.class
+com/example/products_microservice/ProductsMicroserviceApplication.class
+com/example/products_microservice/ProductServiceImpl.class
