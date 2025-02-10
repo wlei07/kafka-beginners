@@ -13,7 +13,9 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
-@KafkaListener(topics = "product-created-events-topic", groupId = "")
+// group id could be configured here:
+// groupId = "email-notification-group"
+@KafkaListener(topics = "product-created-events-topic")
 @Slf4j
 @RequiredArgsConstructor
 public class ProductCreatedEventHandler {
