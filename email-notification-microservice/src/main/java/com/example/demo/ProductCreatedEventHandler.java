@@ -7,6 +7,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -22,8 +25,12 @@ public class ProductCreatedEventHandler {
     private final RestTemplate restTemplate;
 
     @KafkaHandler
-    public void handle(ProductCreatedEvent productCreatedEvent) {
-        log.info("Received product created event: {}", productCreatedEvent.title());
+    public void handle(
+            @Payload ProductCreatedEvent productCreatedEvent,
+            @Header(value = "messageId", required = true) String messageId,
+            @Header(KafkaHeaders.RECEIVED_KEY) String messageKey
+    ) {
+        log.info("Received product created event: {} with productId: {}", productCreatedEvent.title(), productCreatedEvent.productId());
         // to simulate not retryable exception happened during message handling.
         // throw new NotRetryableException("An error took place. No need to consume this message again.");
 

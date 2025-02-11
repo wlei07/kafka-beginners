@@ -3,6 +3,7 @@ package com.example.products_microservice;
 import com.example.core.ProductCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -30,7 +31,13 @@ public class ProductServiceImpl implements ProductService {
         // TODO: persist product into database before publishing an event.
         ProductCreatedEvent productCreatedEvent = new ProductCreatedEvent(productId, product.title(), product.price(), product.quantity());
         log.info("Before publishing a {}", ProductCreatedEvent.class.getSimpleName());
-        SendResult<String, ProductCreatedEvent> result = kafkaTemplate.send(topicName, productId, productCreatedEvent).get();
+
+        ProducerRecord<String, ProductCreatedEvent> record = new ProducerRecord<>(topicName, productId, productCreatedEvent);
+        // to demonstrate how to use header when sending a message
+        // note it is coupled with consumer side, so when you change it, you also need to update consumer.
+        record.headers().add("messageId", UUID.randomUUID().toString().getBytes());
+
+        SendResult<String, ProductCreatedEvent> result = kafkaTemplate.send(record).get();
         log.info("Partition: {}", result.getRecordMetadata().partition());
         log.info("Topic: {}", result.getRecordMetadata().topic());
         log.info("Offset: {}", result.getRecordMetadata().offset());
