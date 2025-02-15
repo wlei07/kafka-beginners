@@ -2,7 +2,7 @@ consumer:
   group-id: email-notification-consumer-group
 server:
   # port = 0 makes it a random port number
-  port: 0
+  port: 8084
 spring:
   application:
     name: demo
@@ -13,6 +13,7 @@ spring:
     driver-class-name: org.h2.Driver
   h2:
     console:
+      # access h2 console from here: http://localhost:8084/h2-console
       enabled: true
   kafka:
     consumer:
