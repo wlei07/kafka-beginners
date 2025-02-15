@@ -1,0 +1,15 @@
+spring:
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        delivery.timeout.ms: 120000
+        linger.ms: 0
+        request.timeout.ms: 30000
+        max.in.flight.requests.per.connection: 5
+        enable.idempotence: true
+      # enable kafka transaction support, and assign unique transaction id prefix
+      transaction-id-prefix: transfer-service-${random.value}-
