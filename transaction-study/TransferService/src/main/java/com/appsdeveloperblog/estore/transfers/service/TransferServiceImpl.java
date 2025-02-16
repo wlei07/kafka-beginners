@@ -72,4 +72,28 @@ public class TransferServiceImpl implements TransferService {
 		return response;
 	}
 
+	public void transferUsingLocalTransactionWithKafkaTemplate(TransferRestModel transferRestModel) {
+		WithdrawalRequestedEvent withdrawalEvent = new WithdrawalRequestedEvent(transferRestModel.getSenderId(),
+				transferRestModel.getRecepientId(), transferRestModel.getAmount());
+		DepositRequestedEvent depositEvent = new DepositRequestedEvent(transferRestModel.getSenderId(),
+				transferRestModel.getRecepientId(), transferRestModel.getAmount());
+
+		boolean returnValue = kafkaTemplate.executeInTransaction(t -> {
+			try {
+				t.send(environment.getProperty("withdraw-money-topic", "withdraw-money-topic"),
+						withdrawalEvent);
+				LOGGER.info("Sent event to withdrawal topic.");
+
+				// Business logic that causes and error
+				callRemoteServce();
+
+				kafkaTemplate.send(environment.getProperty("deposit-money-topic", "deposit-money-topic"), depositEvent);
+				LOGGER.info("Sent event to deposit topic");
+				return true;
+			}catch (Exception ex) {
+				LOGGER.error(ex.getMessage(), ex);
+				throw new TransferServiceException(ex);
+			}
+		});
+	}
 }

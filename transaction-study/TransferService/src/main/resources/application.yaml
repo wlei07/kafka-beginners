@@ -1,6 +1,12 @@
 logging:
   level:
     org:
+      apache:
+        kafka:
+          clients:
+            producer:
+              internals:
+                TransactionManager: TRACE
       springframework:
         kafka:
           transaction: TRACE
