@@ -8,4 +8,5 @@ spring:
       group-id: amount-widthrawal-event
       properties:
         spring.json.trusted.packages: com.appsdeveloperblog.*
+      # to read committed message only to guarantee the transactional behaviour.
       isolation-level: read_committed

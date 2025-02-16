@@ -6,16 +6,31 @@ logging:
           clients:
             producer:
               internals:
-                TransactionManager: TRACE
+                TransactionManager: DEBUG
       springframework:
         kafka:
-          transaction: TRACE
-        transaction: TRACE
+          transaction:
+            KafkaTransactionManager: DEBUG
+        orm:
+          jpa:
+            JpaTransactionManager: DEBUG
+        transaction: DEBUG
 
 server:
   port: 8080
 
 spring:
+  datasource:
+    username: lei
+    password: lei
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    open-in-view: false
   kafka:
     producer:
       bootstrap-servers: localhost:9092
