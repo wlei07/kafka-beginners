@@ -1,13 +1,9 @@
 package com.example.products_microservice;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class ProductsMicroserviceApplicationTests {
-
-	@Test
-	void contextLoads() {
-	}
-
+class ProductsMicroserviceApplicationTests extends AbstractKafkaTest {
+    @Test
+    void contextLoads() {
+    }
 }
