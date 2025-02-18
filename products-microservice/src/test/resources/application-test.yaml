@@ -1,0 +1,10 @@
+spring:
+  kafka:
+    consumer:
+      group-id: product-created-events
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: com.example.core
+      auto-offset-reset: earliest
