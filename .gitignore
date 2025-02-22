@@ -1,10 +1,7 @@
-build/
+.idea/
 
 infrastructure/kafka-1/
 infrastructure/kafka-2/
 infrastructure/kafka-3/
 
-.gradle
-
-### IntelliJ IDEA ###
-.idea/
+target
