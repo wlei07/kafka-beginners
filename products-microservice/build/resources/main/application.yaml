@@ -1,0 +1,46 @@
+app:
+  topic-name: product-created-events-topic
+
+server:
+  # port could be 0, which means any available port
+  port: 8080
+
+spring:
+  application:
+    name: products-microservice
+
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092,localhost:9094
+      # serializer is used to serialize key values to byte array before sending them over the network
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      # spring.kafka.producer.acks=[all|1|0] for producer acknowledgement
+      # 1 means one acknowledgement from kafka producer, which is the default value
+      # all means that producer will wait for acknowledgement from all in-sync replicas
+      acks: all
+      # spring.kafka.producer.reties=10, default is 2147483647
+      # used together with spring.kafka.producer.properties.retry.backoff.ms
+      # retries: 10
+      properties:
+        # retry:
+          # backoff:
+            # spring.kafka.producer.properties.retry.backoff.ms=1000, default is 100ms, time interval between reties.
+            # used together with spring.kafka.producer.reties
+            # ms: 5000
+        # AND alternatively:
+        # spring.kafka.producer.properties.delivery.timeout.ms=120000, the maximum time producer can spend re-trying to deliver the message.
+        # NOTE: delivery.timeout.ms >= linger.ms + request.timeout.ms
+        delivery.timeout.ms: 120000
+        enable.idempotence: true
+        # spring.kafka.producer.properties.linger.ms: wait and batch, then send all batched messages in one time.
+        linger.ms: 0
+        # spring.kafka.producer.properties.request.timeout.ms=30000, wait for a response after sending a request
+        request.timeout.ms: 30000
+        #specifies the maximum number of unacknowledged requests that a producer can send on a single connection before waiting for responses.
+        # It plays an important role in managing request throughput and ensuring message ordering.
+        max.in.flight.requests.per.connection: 6
+# logging:
+  # level:
+    # org.apache.kafka: DEBUG
+    # org.springframework.kafka: DEBUG

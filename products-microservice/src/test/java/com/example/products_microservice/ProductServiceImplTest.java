@@ -1,18 +1,33 @@
 package com.example.products_microservice;
 
+import com.example.core.ProductCreatedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductServiceImplTest extends AbstractKafkaTest {
     @Autowired
@@ -21,6 +36,25 @@ class ProductServiceImplTest extends AbstractKafkaTest {
     private EmbeddedKafkaBroker embeddedKafkaBroker;
     @Autowired
     private Environment environment;
+
+    private KafkaMessageListenerContainer<String, ProductCreatedEvent> kafkaMessageListenerContainer;
+    private BlockingQueue<ConsumerRecord<String, ProductCreatedEvent>> records;
+
+    @BeforeAll
+    public void setup() {
+        DefaultKafkaConsumerFactory<String, Object> consumerFactory = new DefaultKafkaConsumerFactory<>(getConsumerProperties());
+        ContainerProperties containerProperties = new ContainerProperties(environment.getProperty("app.topic-name"));
+        kafkaMessageListenerContainer = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
+        records = new LinkedBlockingQueue<>();
+        kafkaMessageListenerContainer.setupMessageListener((MessageListener<String, ProductCreatedEvent>)records::add);
+        kafkaMessageListenerContainer.start();
+        ContainerTestUtils.waitForAssignment(kafkaMessageListenerContainer, embeddedKafkaBroker.getPartitionsPerTopic());
+    }
+
+    @AfterAll
+    public void tearDown() {
+        kafkaMessageListenerContainer.stop();
+    }
 
     @Test
     void createProduct() throws ExecutionException, InterruptedException {
@@ -34,7 +68,13 @@ class ProductServiceImplTest extends AbstractKafkaTest {
         productService.createProduct(createProductRequest);
 
         // Assert
-
+        ConsumerRecord<String, ProductCreatedEvent> message = records.poll(3000, TimeUnit.MILLISECONDS);
+        assertThat(message).isNotNull();
+        assertThat(message.key()).isNotNull();
+        ProductCreatedEvent result = message.value();
+        assertThat(result.title()).isEqualTo(title);
+        assertThat(result.price()).isEqualTo(price);
+        assertThat(result.quantity()).isEqualTo(quantity);
     }
 
     private Map<String, Object> getConsumerProperties() {
