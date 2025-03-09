@@ -1,3 +1,8 @@
+orders:
+  events:
+    topic:
+      name: orders-events
+
 server:
   port: 8080
 
