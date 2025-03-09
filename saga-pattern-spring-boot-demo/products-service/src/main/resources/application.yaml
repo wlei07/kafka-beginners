@@ -1,7 +1,12 @@
 products:
   commands:
     topic:
+      # for OrderCreatedEvent
       name: products-commands
+  events:
+    topic:
+      # for ProductReservedEvent
+      name: products-events
 
 server:
   port: 8081
