@@ -29,7 +29,7 @@ public class ProductServiceImpl implements ProductService {
         productEntity.setQuantity(productEntity.getQuantity() - desiredProduct.getQuantity());
         productRepository.save(productEntity);
 
-        var reservedProduct = new Product();
+        Product reservedProduct = new Product();
         BeanUtils.copyProperties(productEntity, reservedProduct);
         reservedProduct.setQuantity(desiredProduct.getQuantity());
         return reservedProduct;

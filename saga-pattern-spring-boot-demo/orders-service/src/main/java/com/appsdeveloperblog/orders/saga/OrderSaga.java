@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @KafkaListener(topics = "${orders.events.topic.name}")
 @RequiredArgsConstructor
 public class OrderSaga {
-    private final KafkaTemplate<String, ReserveProductCommand> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final OrderHistoryService orderHistoryService;
 
     @Value("${products.commands.topic.name}")

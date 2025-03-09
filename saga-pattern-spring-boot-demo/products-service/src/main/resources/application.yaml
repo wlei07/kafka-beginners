@@ -1,14 +1,10 @@
-orders:
-  events:
-    topic:
-      name: orders-events
 products:
   commands:
     topic:
       name: products-commands
 
 server:
-  port: 8080
+  port: 8081
 
 spring:
   jackson:
@@ -17,6 +13,8 @@ spring:
   jpa:
     open-in-view: false
   kafka:
+    admin:
+      auto-create: false
     bootstrap-servers:
       - localhost:9092
       - localhost:9094
@@ -31,9 +29,11 @@ spring:
         request.timeout.ms: 30000
         max.in.flight.requests.per.connection: 5
         enable.idempotence: true
+        allow.auto.create.topics: false
     consumer:
-      group-id: orders-ms
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      group-id: products-ms
       properties:
         spring.json.trusted.packages: com.appsdeveloperblog.core.*
+        allow.auto.create.topics: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
