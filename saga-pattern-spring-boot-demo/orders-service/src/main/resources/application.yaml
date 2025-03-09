@@ -2,6 +2,10 @@ orders:
   events:
     topic:
       name: orders-events
+products:
+  commands:
+    topic:
+      name: products-commands
 
 server:
   port: 8080
