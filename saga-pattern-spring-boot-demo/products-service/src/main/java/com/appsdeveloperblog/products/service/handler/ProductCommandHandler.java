@@ -2,6 +2,7 @@ package com.appsdeveloperblog.products.service.handler;
 
 import com.appsdeveloperblog.core.dto.Product;
 import com.appsdeveloperblog.core.dto.commands.ReserveProductCommand;
+import com.appsdeveloperblog.core.dto.events.ProductReservationFailedEvent;
 import com.appsdeveloperblog.core.dto.events.ProductReservedEvent;
 import com.appsdeveloperblog.core.exceptions.ProductInsufficientQuantityException;
 import com.appsdeveloperblog.products.service.ProductService;
@@ -39,6 +40,12 @@ public class ProductCommandHandler {
             kafkaTemplate.send(productEventsTopicName, productReservedEvent);
         } catch (ProductInsufficientQuantityException e) {
             log.error(e.getLocalizedMessage(), e);
+            ProductReservationFailedEvent productReservationFailedEvent = new ProductReservationFailedEvent(
+                    command.productId(),
+                    command.orderId(),
+                    command.productQuantity()
+            );
+            kafkaTemplate.send(productEventsTopicName, productReservationFailedEvent);
         }
     }
 }

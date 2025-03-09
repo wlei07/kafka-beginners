@@ -5,7 +5,7 @@ products:
       name: products-commands
   events:
     topic:
-      # for ProductReservedEvent
+      # for ProductReservedEvent and ProductReservationFailedEvent
       name: products-events
 
 server:
