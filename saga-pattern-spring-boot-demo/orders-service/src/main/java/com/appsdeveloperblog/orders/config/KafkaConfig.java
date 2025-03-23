@@ -17,10 +17,17 @@ public class KafkaConfig {
     private String productsCommandsTopicName;
     @Value("${payments.commands.topic.name}")
     private String paymentsCommandsTopicName;
+    @Value("${orders.commands.topic.name}")
+    private String ordersCommandsTopicName;
 
     @Bean
     KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
         return new KafkaTemplate<>(producerFactory);
+    }
+
+    @Bean
+    NewTopic createOrdersCommandsTopic() {
+        return createTopic(ordersCommandsTopicName);
     }
 
     @Bean

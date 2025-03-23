@@ -1,14 +1,15 @@
 package com.appsdeveloperblog.orders.saga;
 
+import com.appsdeveloperblog.core.dto.commands.ApproveOrderCommand;
 import com.appsdeveloperblog.core.dto.commands.ProcessPaymentCommand;
 import com.appsdeveloperblog.core.dto.commands.ReserveProductCommand;
 import com.appsdeveloperblog.core.dto.events.OrderCreatedEvent;
+import com.appsdeveloperblog.core.dto.events.PaymentProcessedEvent;
 import com.appsdeveloperblog.core.dto.events.ProductReservedEvent;
 import com.appsdeveloperblog.core.types.OrderStatus;
 import com.appsdeveloperblog.orders.service.OrderHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -24,6 +25,8 @@ public class OrderSaga {
     private String productsCommandsTopicName;
     @Value("${payments.commands.topic.name}")
     private String paymentsCommandsTopicName;
+    @Value("${orders.commands.topic.name}")
+    private String ordersCommandsTopicName;
 
     @KafkaListener(topics = {"${orders.events.topic.name}"})
     public void handleOrderCreatedEvent(@Payload OrderCreatedEvent orderCreatedEvent) {
@@ -45,5 +48,11 @@ public class OrderSaga {
                 productReservedEvent.productQuantity()
         );
         kafkaTemplate.send(paymentsCommandsTopicName, processPaymentCommand);
+    }
+
+    @KafkaListener(topics = "${payments.events.topic.name}")
+    public void handlePaymentProcessedEvent(@Payload PaymentProcessedEvent paymentProcessedEvent) {
+        ApproveOrderCommand approveOrderCommand = new ApproveOrderCommand(paymentProcessedEvent.orderId());
+        kafkaTemplate.send(ordersCommandsTopicName, approveOrderCommand);
     }
 }
