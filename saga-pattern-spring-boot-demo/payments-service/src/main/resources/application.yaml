@@ -1,33 +1,15 @@
-orders:
-  events:
-    topic:
-      name: orders-events
-payments:
-  commands:
-    topic:
-      name: payments-commands
-products:
-  commands:
-    topic:
-      name: products-commands
-  events:
-    topic:
-      name: products-events
-
 server:
-  port: 8080
+  port: 8082
 
 spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: true
-  jpa:
-    open-in-view: false
+
   kafka:
-    bootstrap-servers:
-      - localhost:9092
-      - localhost:9094
-      - localhost:9096
+    admin:
+      auto-create: false
+    bootstrap-servers: localhost:9092,localhost:9094,localhost:9096
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -38,9 +20,22 @@ spring:
         request.timeout.ms: 30000
         max.in.flight.requests.per.connection: 5
         enable.idempotence: true
+        allow.auto.create.topics: false
     consumer:
-      group-id: orders-ms
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      group-id: payments-ms
       properties:
         spring.json.trusted.packages: com.appsdeveloperblog.core.*
+        allow.auto.create.topics: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+remote:
+  ccp:
+    url: http://localhost:8084
+payments:
+  commands:
+    topic:
+      name: payments-commands
+  events:
+    topic:
+      name: payments-events

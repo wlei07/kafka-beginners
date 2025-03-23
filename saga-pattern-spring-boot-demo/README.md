@@ -5,10 +5,17 @@ Demonstration of SAGA Orchestration Design Pattern using Spring Boot and Kafka
 Flow:
 
 # orders-service
-1. order service publish OrderCreatedEvent to the topic ${orders.events.topic.name} 
-2. OrderSaga picks up the OrderCreatedEvent above, publishes ReserveProductCommand to ${products.commands.topic.name}
+1. OrderServiceImpl: OrderCreatedEvent -> ${orders.events.topic.name}
+2. OrderSaga: ${orders.events.topic.name} -> OrderCreatedEvent, ReserveProductCommand -> ${products.commands.topic.name}
 # products-service
-1. picks up the ReserveProductCommand published in the above step from topic ${products.commands.topic.name}
+1. ProductCommandHandler: ${products.commands.topic.name} -> ReserveProductCommand
 2. reserve product, and if successful
-3. publish ProductReservedEvent to the topic ${products.events.topic.name}
-4. if not successful publish ProductReservationFailedEvent to the same topic as mentioned above
+3. ProductReservedEvent -> ${products.events.topic.name}
+4. if not successful
+5. ProductReservationFailedEvent -> ${products.events.topic.name}
+# orders-service
+1. ${products.events.topic.name} -> ProductReservedEvent
+2. ProcessPaymentCommand -> ${payments.commands.topic.name}
+# payments-service
+1. ${payments.commands.topic.name} -> ProcessPaymentCommand
+2. PaymentProcessedEvent or PaymentProcessingFailedEvent -> ${payments.events.topic.name}
