@@ -19,3 +19,7 @@ Flow:
 # payments-service
 1. ${payments.commands.topic.name} -> ProcessPaymentCommand
 2. PaymentProcessedEvent or PaymentProcessingFailedEvent -> ${payments.events.topic.name}
+# orders-service
+1. ${payments.events.topic.name} -> (OrderSaga) PaymentProcessedEvent
+2. (OrderSage) ApproveOrderCommand -> ${orders.commands.topic.name}
+3. (OrderCommandsHandler) ${orders.commands.topic.name} -> (OrderService#approveOrder) OrderApprovedEvent -> ${orders.events.topic.name}
