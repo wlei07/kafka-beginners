@@ -1,11 +1,15 @@
 package com.appsdeveloperblog.orders.saga;
 
 import com.appsdeveloperblog.core.dto.commands.ApproveOrderCommand;
+import com.appsdeveloperblog.core.dto.commands.CancelProductReservationCommand;
 import com.appsdeveloperblog.core.dto.commands.ProcessPaymentCommand;
+import com.appsdeveloperblog.core.dto.commands.ProductReservationCanceledEvent;
+import com.appsdeveloperblog.core.dto.commands.RejectOrderCommand;
 import com.appsdeveloperblog.core.dto.commands.ReserveProductCommand;
 import com.appsdeveloperblog.core.dto.events.OrderApprovedEvent;
 import com.appsdeveloperblog.core.dto.events.OrderCreatedEvent;
 import com.appsdeveloperblog.core.dto.events.PaymentProcessedEvent;
+import com.appsdeveloperblog.core.dto.events.PaymentProcessingFailedEvent;
 import com.appsdeveloperblog.core.dto.events.ProductReservedEvent;
 import com.appsdeveloperblog.core.types.OrderStatus;
 import com.appsdeveloperblog.orders.service.OrderHistoryService;
@@ -54,9 +58,26 @@ public class OrderSaga {
     }
 
     @KafkaHandler
+    public void handleProductReservationCancelledEvent(@Payload ProductReservationCanceledEvent productReservationCanceledEvent) {
+        RejectOrderCommand rejectOrderCommand = new RejectOrderCommand(productReservationCanceledEvent.orderId());
+        kafkaTemplate.send(ordersCommandsTopicName, rejectOrderCommand);
+        orderHistoryService.add(productReservationCanceledEvent.orderId(), OrderStatus.REJECTED);
+    }
+
+    @KafkaHandler
     public void handlePaymentProcessedEvent(@Payload PaymentProcessedEvent paymentProcessedEvent) {
         ApproveOrderCommand approveOrderCommand = new ApproveOrderCommand(paymentProcessedEvent.orderId());
         kafkaTemplate.send(ordersCommandsTopicName, approveOrderCommand);
+    }
+
+    @KafkaHandler
+    public void handlePaymentProcessingFailedEvent(@Payload PaymentProcessingFailedEvent paymentProcessingFailedEvent) {
+        CancelProductReservationCommand cancelProductReservationCommand = new CancelProductReservationCommand(
+                paymentProcessingFailedEvent.productId(),
+                paymentProcessingFailedEvent.orderId(),
+                paymentProcessingFailedEvent.productQuantity()
+        );
+        kafkaTemplate.send(productsCommandsTopicName, cancelProductReservationCommand);
     }
 
     @KafkaHandler

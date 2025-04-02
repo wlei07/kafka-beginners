@@ -4,6 +4,10 @@ Demonstration of SAGA Orchestration Design Pattern using Spring Boot and Kafka
 
 Flow:
 
+In high level, reserve product -> process payment -> approve, and in case failure: process payment failed -> cancel product reservation -> reject order.
+
+And in general, OrderSaga receives events, and publish command.
+
 # orders-service
 1. OrderServiceImpl: OrderCreatedEvent -> ${orders.events.topic.name}
 2. OrderSaga: ${orders.events.topic.name} -> OrderCreatedEvent, ReserveProductCommand -> ${products.commands.topic.name}
@@ -14,15 +18,14 @@ Flow:
 4. if not successful
 5. ProductReservationFailedEvent -> ${products.events.topic.name}
 # orders-service
-1. ${products.events.topic.name} -> ProductReservedEvent
-2. ProcessPaymentCommand -> ${payments.commands.topic.name}
+1. OrderSaga: ${products.events.topic.name} -> ProductReservedEvent, ProcessPaymentCommand -> ${payments.commands.topic.name}
 # payments-service
 1. ${payments.commands.topic.name} -> ProcessPaymentCommand
 2. PaymentProcessedEvent or PaymentProcessingFailedEvent -> ${payments.events.topic.name}
 # orders-service
-1. ${payments.events.topic.name} -> (OrderSaga) PaymentProcessedEvent
-2. (OrderSage) ApproveOrderCommand -> ${orders.commands.topic.name}
-3. (OrderCommandsHandler) ${orders.commands.topic.name} -> (OrderService#approveOrder) OrderApprovedEvent -> ${orders.events.topic.name}
+1. OrderSaga: ${payments.events.topic.name} -> PaymentProcessedEvent, ApproveOrderCommand -> ${orders.commands.topic.name}
+2. (OrderCommandsHandler) ${orders.commands.topic.name} -> ApproveOrderCommand, (OrderService#approveOrder) OrderApprovedEvent -> ${orders.events.topic.name}
+3. OrderSaga: ${orders.events.topic.name} ->  OrderApprovedEvent
 
 # happy flow test
 1. create product: post localhost:8081/products
