@@ -1,73 +1,81 @@
-# chmod 777 ./kafka-1 ./kafka-2 ./kafka-3
+# mkdir -p kafka-1 kafka-2 kafka-3
+# sudo chown -R 1000:1000 kafka-1 kafka-2 kafka-3
 services:
   kafka-1:
-    image: 'bitnami/kafka:3.9.0'
+    image: confluentinc/cp-kafka:8.1.1
+    container_name: kafka-1
     ports:
       - '9092:9092'
     environment:
-      - KAFKA_CFG_NODE_ID=1
-      # The presence of KAFKA_KRAFT_CLUSTER_ID and KAFKA_CFG_PROCESS_ROLES confirms this Kafka instance is running in KRaft mode, not using Zookeeper.
-      - KAFKA_KRAFT_CLUSTER_ID=NxBKhbUOROe9AEmaKO_tsg
-      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      # The presence of CLUSTER_ID and KAFKA_PROCESS_ROLES confirms this Kafka instance is running in KRaft mode, not using Zookeeper.
+      CLUSTER_ID: "WnLkTHhkQaiJbwP8FClPhw"
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
       # format: node_id@host_name:port
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
       # format: listener_name://[host_name]:port_number
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9092
+      KAFKA_LISTENERS: PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9092
       # Configures how the Kafka broker advertises itself to clients and other brokers.
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9090,EXTERNAL://${HOSTNAME:-localhost}:9092
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - TZ=Europe/Brussels
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9090,EXTERNAL://${HOSTNAME:-localhost}:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      TZ: "Europe/Brussels"
     volumes:
-      - ./kafka-1:/bitnami/kafka
+      - ./kafka-1:/var/lib/kafka
   kafka-2:
-    image: 'bitnami/kafka:3.9.0'
+    image: confluentinc/cp-kafka:8.1.1
+    container_name: kafka-2
     ports:
       - '9094:9094'
     environment:
-      - KAFKA_CFG_NODE_ID=2
-      # The presence of KAFKA_KRAFT_CLUSTER_ID and KAFKA_CFG_PROCESS_ROLES confirms this Kafka instance is running in KRaft mode, not using Zookeeper.
-      - KAFKA_KRAFT_CLUSTER_ID=NxBKhbUOROe9AEmaKO_tsg
-      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      # The presence of CLUSTER_ID and KAFKA_PROCESS_ROLES confirms this Kafka instance is running in KRaft mode, not using Zookeeper.
+      CLUSTER_ID: "WnLkTHhkQaiJbwP8FClPhw"
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
       # format: node_id@host_name:port
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
       # format: listener_name://[host_name]:port_number
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9094
+      KAFKA_LISTENERS: PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9094
       # Configures how the Kafka broker advertises itself to clients and other brokers.
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9090,EXTERNAL://${HOSTNAME:-localhost}:9094
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - TZ=Europe/Brussels
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9090,EXTERNAL://${HOSTNAME:-localhost}:9094
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      TZ: "Europe/Brussels"
     volumes:
-      - ./kafka-2:/bitnami/kafka
+      - ./kafka-2:/var/lib/kafka
   kafka-3:
-    image: 'bitnami/kafka:3.9.0'
+    image: confluentinc/cp-kafka:8.1.1
+    container_name: kafka-3
     ports:
       - '9096:9096'
     environment:
-      - KAFKA_CFG_NODE_ID=3
-      # The presence of KAFKA_KRAFT_CLUSTER_ID and KAFKA_CFG_PROCESS_ROLES confirms this Kafka instance is running in KRaft mode, not using Zookeeper.
-      - KAFKA_KRAFT_CLUSTER_ID=NxBKhbUOROe9AEmaKO_tsg
-      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      # The presence of CLUSTER_ID and KAFKA_PROCESS_ROLES confirms this Kafka instance is running in KRaft mode, not using Zookeeper.
+      CLUSTER_ID: "WnLkTHhkQaiJbwP8FClPhw"
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: broker,controller
       # format: node_id@host_name:port
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
       # format: listener_name://[host_name]:port_number
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9096
+      KAFKA_LISTENERS: PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9096
       # Configures how the Kafka broker advertises itself to clients and other brokers.
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-3:9090,EXTERNAL://${HOSTNAME:-localhost}:9096
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - TZ=Europe/Brussels
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9090,EXTERNAL://${HOSTNAME:-localhost}:9096
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      TZ: "Europe/Brussels"
     volumes:
-      - ./kafka-3:/bitnami/kafka
+      - ./kafka-3:/var/lib/kafka
+
 # when you want to add additonal broker:
 # 1. copy & paste the above kafka-n service section, change the name to kafka-(n+1)
-# 2. change ports
-# 3. KAFKA_CFG_NODE_ID
-# 4. KAFKA_CFG_CONTROLLER_QUORUM_VOTERS for all brokers, add one additional config item.
-# 5. KAFKA_CFG_LISTENERS, change ONLY the EXTERNAL port
-# 6. KAFKA_CFG_ADVERTISED_LISTENERS, PLAINTEXT://kafka-(n+1), EXTERNAL port
+# 2. change container_name, ports
+# 3. KAFKA_NODE_ID
+# 4. KAFKA_CONTROLLER_QUORUM_VOTERS for all brokers, add one additional config item.
+# 5. KAFKA_LISTENERS, change ONLY the EXTERNAL port
+# 6. KAFKA_ADVERTISED_LISTENERS, PLAINTEXT://kafka-(n+1), EXTERNAL port
 # 7. update volumens, create new dir, chmod 777
