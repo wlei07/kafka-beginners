@@ -1,7 +1,16 @@
+*.iml
+
 .idea/
+.vscode/
 
-infrastructure/kafka-1/
-infrastructure/kafka-2/
-infrastructure/kafka-3/
+/mockservice/target/
+/products-microservice/target/
+/saga-pattern-spring-boot-demo/core/target/
+/saga-pattern-spring-boot-demo/credit-card-processor-service/target/
+/saga-pattern-spring-boot-demo/orders-service/target/
+/saga-pattern-spring-boot-demo/payments-service/target/
+/saga-pattern-spring-boot-demo/products-service/target/
 
-target
+/infrastructure/kafka-1/
+/infrastructure/kafka-2/
+/infrastructure/kafka-3/
