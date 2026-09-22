@@ -1,5 +1,8 @@
+# To run this kafka cluster locally:
+#
 # mkdir -p kafka-1 kafka-2 kafka-3
 # sudo chown -R 1000:1000 kafka-1 kafka-2 kafka-3
+# docker compose up -d
 services:
   kafka-1:
     image: confluentinc/cp-kafka:8.3.1
@@ -7,19 +10,28 @@ services:
     ports:
       - '9092:9092'
     environment:
-      # The presence of CLUSTER_ID and KAFKA_PROCESS_ROLES confirms this Kafka instance is running in KRaft mode, not using Zookeeper.
+      # The CLUSTER_ID is specific to KRaft mode,
+      # whereas the underlying Kafka storage tool calls its option --cluster-id. It is not a normal broker property like node.id.
+      #
+      # It should work out of the box with the below cluster id, in case you want a different one, this is the way to generate it:
+      # docker run --rm \
+      #    --entrypoint /bin/kafka-storage \
+      #    confluentinc/cp-kafka:8.3.1 \
+      #    random-uuid
       CLUSTER_ID: "WnLkTHhkQaiJbwP8FClPhw"
+      # KRaft requires every broker/controller process to have a unique node.id.
       KAFKA_NODE_ID: 1
+      # This process performs both roles, so it is running in combined mode.
       KAFKA_PROCESS_ROLES: broker,controller
       # format: node_id@host_name:port
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
       # format: listener_name://[host_name]:port_number
-      KAFKA_LISTENERS: PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9092
+      KAFKA_LISTENERS: INTERNAL://:9090,CONTROLLER://:9091,EXTERNAL://:9092
       # Configures how the Kafka broker advertises itself to clients and other brokers.
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9090,EXTERNAL://${HOSTNAME:-localhost}:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-1:9090,EXTERNAL://${HOSTNAME:-localhost}:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_LOG_DIRS: /var/lib/kafka/data
       TZ: "Europe/Brussels"
     volumes:
@@ -30,19 +42,15 @@ services:
     ports:
       - '9094:9094'
     environment:
-      # The presence of CLUSTER_ID and KAFKA_PROCESS_ROLES confirms this Kafka instance is running in KRaft mode, not using Zookeeper.
       CLUSTER_ID: "WnLkTHhkQaiJbwP8FClPhw"
       KAFKA_NODE_ID: 2
       KAFKA_PROCESS_ROLES: broker,controller
-      # format: node_id@host_name:port
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
-      # format: listener_name://[host_name]:port_number
-      KAFKA_LISTENERS: PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9094
-      # Configures how the Kafka broker advertises itself to clients and other brokers.
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9090,EXTERNAL://${HOSTNAME:-localhost}:9094
+      KAFKA_LISTENERS: INTERNAL://:9090,CONTROLLER://:9091,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-2:9090,EXTERNAL://${HOSTNAME:-localhost}:9094
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_LOG_DIRS: /var/lib/kafka/data
       TZ: "Europe/Brussels"
     volumes:
@@ -53,29 +61,28 @@ services:
     ports:
       - '9096:9096'
     environment:
-      # The presence of CLUSTER_ID and KAFKA_PROCESS_ROLES confirms this Kafka instance is running in KRaft mode, not using Zookeeper.
       CLUSTER_ID: "WnLkTHhkQaiJbwP8FClPhw"
       KAFKA_NODE_ID: 3
       KAFKA_PROCESS_ROLES: broker,controller
-      # format: node_id@host_name:port
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9091,2@kafka-2:9091,3@kafka-3:9091
-      # format: listener_name://[host_name]:port_number
-      KAFKA_LISTENERS: PLAINTEXT://:9090,CONTROLLER://:9091,EXTERNAL://:9096
-      # Configures how the Kafka broker advertises itself to clients and other brokers.
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9090,EXTERNAL://${HOSTNAME:-localhost}:9096
+      KAFKA_LISTENERS: INTERNAL://:9090,CONTROLLER://:9091,EXTERNAL://:9096
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-3:9090,EXTERNAL://${HOSTNAME:-localhost}:9096
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_LOG_DIRS: /var/lib/kafka/data
       TZ: "Europe/Brussels"
     volumes:
       - ./kafka-3:/var/lib/kafka
-
-# when you want to add additonal broker:
+networks:
+  default:
+    name: kafka-beginners-network
+    driver: bridge
+# when you want to add additional broker:
 # 1. copy & paste the above kafka-n service section, change the name to kafka-(n+1)
 # 2. change container_name, ports
 # 3. KAFKA_NODE_ID
 # 4. KAFKA_CONTROLLER_QUORUM_VOTERS for all brokers, add one additional config item.
 # 5. KAFKA_LISTENERS, change ONLY the EXTERNAL port
-# 6. KAFKA_ADVERTISED_LISTENERS, PLAINTEXT://kafka-(n+1), EXTERNAL port
-# 7. update volumens, create new dir, chmod 777
+# 6. KAFKA_ADVERTISED_LISTENERS, INTERNAL://kafka-(n+1), EXTERNAL port
+# 7. update volumes, create the new directory, and run sudo chown -R 1000:1000 kafka-(n+1)
