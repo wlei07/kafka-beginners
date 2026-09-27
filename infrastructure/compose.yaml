@@ -83,3 +83,4 @@ networks:
 # 5. KAFKA_LISTENERS, change ONLY the EXTERNAL port
 # 6. KAFKA_ADVERTISED_LISTENERS, INTERNAL://kafka-(n+1), EXTERNAL port
 # 7. update volumes, create the new directory, and run sudo chown -R 1000:1000 kafka-(n+1)
+# 8. delete all kafka-(1-n) data folders
