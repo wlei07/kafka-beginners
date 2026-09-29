@@ -1,11 +1,15 @@
 package com.example.demo;
 
+import com.google.protobuf.Message;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
@@ -19,11 +23,12 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.serializer.DelegatingByTypeSerializer;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
-import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Configuration
@@ -77,8 +82,14 @@ public class KafkaConsumerConfiguration {
     ProducerFactory<String, Object> producerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.getProperty("spring.kafka.consumer.bootstrap-servers"));
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        return new DefaultKafkaProducerFactory<>(config);
+        config.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, environment.getProperty("spring.kafka.consumer.properties.schema.registry.url"));
+        // This producer only writes failed messages to the dead letter topic (-dlt). It gets 2 kinds of values:
+        // - the Protobuf object, when our handler threw an exception  -> KafkaProtobufSerializer
+        // - the raw bytes, when the message could not be deserialized -> ByteArraySerializer (forwarded unchanged)
+        Map<Class<?>, Serializer<?>> valueSerializers = new LinkedHashMap<>();
+        valueSerializers.put(byte[].class, new ByteArraySerializer());
+        valueSerializers.put(Message.class, new KafkaProtobufSerializer<>());
+        // assignable = true: our generated ProductCreatedEvent matches the Message.class entry
+        return new DefaultKafkaProducerFactory<>(config, new StringSerializer(), new DelegatingByTypeSerializer(valueSerializers, true));
     }
 }

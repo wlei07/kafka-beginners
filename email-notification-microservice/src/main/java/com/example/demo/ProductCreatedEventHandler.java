@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.core.ProductCreatedEvent;
+import com.example.core.proto.ProductCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -34,7 +34,7 @@ public class ProductCreatedEventHandler {
             @Header(value = "messageId", required = true) String messageId,
             @Header(KafkaHeaders.RECEIVED_KEY) String messageKey
     ) {
-        log.info("Received product created event: {} with productId: {}", productCreatedEvent.title(), productCreatedEvent.productId());
+        log.info("Received product created event: {} with productId: {}", productCreatedEvent.getTitle(), productCreatedEvent.getProductId());
         // to simulate not retryable exception happened during message handling.
         // throw new NotRetryableException("An error took place. No need to consume this message again.");
 
@@ -60,7 +60,7 @@ public class ProductCreatedEventHandler {
             throw new NotRetryableException(e);
         }
         try {
-            processedEventRepository.save(new ProcessedEventEntity(messageId, productCreatedEvent.productId()));
+            processedEventRepository.save(new ProcessedEventEntity(messageId, productCreatedEvent.getProductId()));
         } catch (DataIntegrityViolationException e) {
             throw new NotRetryableException(e);
         }
