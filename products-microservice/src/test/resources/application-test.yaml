@@ -5,11 +5,11 @@ app:
   topic-min-insync-replicas: 1
 spring:
   kafka:
+    producer:
+      properties:
+        # "mock://" = in-memory Schema Registry inside the test JVM, so tests don't need the real one on :8081.
+        # Producer and test consumer use the same name, so they share the same registry.
+        schema.registry.url: mock://products-microservice-test
     consumer:
       group-id: product-created-events
-      properties:
-        spring:
-          json:
-            trusted:
-              packages: com.example.core
       auto-offset-reset: earliest

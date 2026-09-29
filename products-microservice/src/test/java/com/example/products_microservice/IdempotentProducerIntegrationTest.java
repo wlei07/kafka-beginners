@@ -1,6 +1,6 @@
 package com.example.products_microservice;
 
-import com.example.core.ProductCreatedEvent;
+import com.example.core.proto.ProductCreatedEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

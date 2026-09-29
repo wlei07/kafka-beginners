@@ -1,6 +1,9 @@
 package com.example.products_microservice;
 
-import com.example.core.ProductCreatedEvent;
+import com.example.core.proto.ProductCreatedEvent;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
+import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -15,7 +18,6 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
-import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 
@@ -72,9 +74,10 @@ class ProductServiceImplTest extends AbstractKafkaTest {
         assertThat(message).isNotNull();
         assertThat(message.key()).isNotNull();
         ProductCreatedEvent result = message.value();
-        assertThat(result.title()).isEqualTo(title);
-        assertThat(result.price()).isEqualTo(price);
-        assertThat(result.quantity()).isEqualTo(quantity);
+        assertThat(result.getTitle()).isEqualTo(title);
+        // price travels as a String; compare by value, so "600" equals 600.00
+        assertThat(new BigDecimal(result.getPrice())).isEqualByComparingTo(price);
+        assertThat(result.getQuantity()).isEqualTo(quantity);
     }
 
     private Map<String, Object> getConsumerProperties() {
@@ -82,9 +85,11 @@ class ProductServiceImplTest extends AbstractKafkaTest {
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaBroker.getBrokersAsString());
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        properties.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JacksonJsonDeserializer.class);
+        properties.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, KafkaProtobufDeserializer.class);
+        properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, environment.getProperty("spring.kafka.producer.properties.schema.registry.url"));
+        // Without this, the deserializer returns a generic DynamicMessage instead of our generated class
+        properties.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, ProductCreatedEvent.class.getName());
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, environment.getProperty("spring.kafka.consumer.group-id"));
-        properties.put(JacksonJsonDeserializer.TRUSTED_PACKAGES, environment.getProperty("spring.kafka.consumer.properties.spring.json.trusted.packages"));
         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, environment.getProperty("spring.kafka.consumer.auto-offset-reset"));
         return properties;
     }
