@@ -25,8 +25,8 @@ spring:
       # consumer group:
       # group-id: email-notification-consumer-group
       properties:
-        spring:
-          json:
-            trusted:
-              # For security reasons, it is advised to provide one or more package names here.
-              packages: com.example.core
+        # Where the deserializer looks up schemas (by the schema ID at the start of each message)
+        schema.registry.url: http://localhost:8081
+        # Which generated class to create; without it you get a generic DynamicMessage.
+        # This replaces spring.json.trusted.packages: the class comes from our config, not from the message.
+        specific.protobuf.value.type: com.example.core.proto.ProductCreatedEvent
