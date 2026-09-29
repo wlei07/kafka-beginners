@@ -71,6 +71,50 @@ services:
       TZ: "Europe/Brussels"
     volumes:
       - ./kafka-3:/var/lib/kafka
+  # Conduktor stores users, settings and saved queries in PostgreSQL (version 13 or higher)
+  conduktor-postgres:
+    image: postgres:17
+    container_name: conduktor-postgres
+    environment:
+      POSTGRES_DB: conduktor
+      POSTGRES_USER: conduktor
+      POSTGRES_PASSWORD: change_me
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    volumes:
+      - conduktor-pg-data:/var/lib/postgresql/data
+  conduktor-console:
+    image: conduktor/conduktor-console:latest
+    container_name: conduktor-console
+    ports:
+      - '8080:8080'
+    depends_on:
+      - conduktor-postgres
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    environment:
+      CDK_DATABASE_URL: "postgresql://conduktor:change_me@conduktor-postgres:5432/conduktor"
+      # No CDK_LICENSE: without a key, Console runs as the free Community Edition
+      CDK_ORGANIZATION_NAME: kafka-beginners
+      # Login for the first admin user. The password must be strong (upper, lower, digit, symbol)
+      CDK_ADMIN_EMAIL: admin@kafka-beginners.local
+      CDK_ADMIN_PASSWORD: "Admin_123!"
+      # Register our cluster. Console runs inside the Docker network, so it uses the INTERNAL listener (9090)
+      CDK_CLUSTERS_0_ID: kafka-beginners
+      CDK_CLUSTERS_0_NAME: kafka-beginners
+      CDK_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9090,kafka-2:9090,kafka-3:9090
+      TZ: "Europe/Brussels"
+    volumes:
+      - conduktor-data:/var/conduktor
+    healthcheck:
+      test: curl -f http://localhost:8080/platform/api/modules/health/live || exit 1
+      interval: 10s
+      start_period: 10s
+      timeout: 5s
+      retries: 3
+volumes:
+  conduktor-pg-data: {}
+  conduktor-data: {}
 networks:
   default:
     name: kafka-beginners-network
