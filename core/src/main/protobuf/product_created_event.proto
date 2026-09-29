@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package com.example.core;
+
+option java_package = "com.example.core.proto";
+option java_multiple_files = true;
+
+message ProductCreatedEvent {
+  string product_id = 1;
+  string title = 2;
+  // Protobuf has no decimal type. A string keeps the BigDecimal value exact.
+  string price = 3;
+  int32 quantity = 4;
+}

@@ -10,11 +10,36 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<!-- Must match the protobuf-java version used by Confluent 8.3.1 -->
+		<protobuf.version>4.34.0</protobuf.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>${protobuf.version}</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
+			<!-- Generates Java classes from src/main/protobuf/*.proto during the build -->
+			<plugin>
+				<groupId>io.github.ascopes</groupId>
+				<artifactId>protobuf-maven-plugin</artifactId>
+				<version>5.1.10</version>
+				<configuration>
+					<protoc kind="binary-maven">
+						<version>${protobuf.version}</version>
+					</protoc>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

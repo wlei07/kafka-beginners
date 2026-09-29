@@ -71,6 +71,22 @@ services:
       TZ: "Europe/Brussels"
     volumes:
       - ./kafka-3:/var/lib/kafka
+  schema-registry:
+    image: confluentinc/cp-schema-registry:8.3.1
+    container_name: schema-registry
+    ports:
+      - '8081:8081'
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    environment:
+      # Name used by Schema Registry to identify itself to other containers
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      # Schemas are stored in the "_schemas" topic, so it talks to Kafka via the INTERNAL listener (9090)
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka-1:9090,PLAINTEXT://kafka-2:9090,PLAINTEXT://kafka-3:9090
+      TZ: "Europe/Brussels"
   # Conduktor stores users, settings and saved queries in PostgreSQL (version 13 or higher)
   conduktor-postgres:
     image: postgres:17
@@ -103,6 +119,8 @@ services:
       CDK_CLUSTERS_0_ID: kafka-beginners
       CDK_CLUSTERS_0_NAME: kafka-beginners
       CDK_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9090,kafka-2:9090,kafka-3:9090
+      # Inside Docker, so use the container name, not localhost
+      CDK_CLUSTERS_0_SCHEMAREGISTRY_URL: http://schema-registry:8081
       TZ: "Europe/Brussels"
     volumes:
       - conduktor-data:/var/conduktor
