@@ -35,7 +35,7 @@ spring:
     producer:
       bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
       acks: all
       properties:
         delivery.timeout.ms: 120000
@@ -48,3 +48,5 @@ spring:
 
 withdraw-money-topic: withdraw-money-topic
 deposit-money-topic: deposit-money-topic
+# each topic partition is copied to 3 brokers
+topic-replicas: 3

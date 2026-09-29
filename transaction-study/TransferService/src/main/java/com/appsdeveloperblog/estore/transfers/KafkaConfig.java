@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManagerFactory;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
@@ -24,6 +25,9 @@ public class KafkaConfig {
 
 	@Value("deposit-money-topic")
 	private String depositTopicName;
+
+	@Value("${topic-replicas}")
+	private int topicReplicas;
 
 	@Value("${spring.kafka.producer.bootstrap-servers}")
 	private String bootstrapServers;
@@ -88,17 +92,18 @@ public class KafkaConfig {
 	}
 
 	@Bean("transactionManager")
-	JpaTransactionManager  jpaTransactionManager(EntityManagerFactory entityManagerFactory) {
+	@DependsOnDatabaseInitialization
+	JpaTransactionManager jpaTransactionManager(EntityManagerFactory entityManagerFactory) {
 		return new JpaTransactionManager(entityManagerFactory);
 	}
 
 	@Bean
 	NewTopic createWithdrawTopic() {
-		return TopicBuilder.name(withdrawTopicName).partitions(3).replicas(3).build();
+		return TopicBuilder.name(withdrawTopicName).partitions(3).replicas(topicReplicas).build();
 	}
 
 	@Bean
 	NewTopic createDepositTopic() {
-		return TopicBuilder.name(depositTopicName).partitions(3).replicas(3).build();
+		return TopicBuilder.name(depositTopicName).partitions(3).replicas(topicReplicas).build();
 	}
 }

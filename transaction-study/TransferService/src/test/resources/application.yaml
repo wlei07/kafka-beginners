@@ -2,8 +2,10 @@ spring:
   kafka:
     bootstrap-servers: ${spring.embedded.kafka.brokers}
     producer:
+      # KafkaConfig reads the producer-level property, so it must be set here too
+      bootstrap-servers: ${spring.embedded.kafka.brokers}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
       acks: all
       properties:
         delivery.timeout.ms: 120000
@@ -13,3 +15,7 @@ spring:
         enable.idempotence: true
       # enable kafka transaction support, and assign unique transaction id prefix
       transaction-id-prefix: transfer-service-${random.value}-
+
+# The embedded test cluster has only 1 broker (see the comment on @EmbeddedKafka in TransfersApplicationTests),
+# so a topic cannot have more than 1 replica. TODO: change back to 3 once the Kafka bug is fixed.
+topic-replicas: 1

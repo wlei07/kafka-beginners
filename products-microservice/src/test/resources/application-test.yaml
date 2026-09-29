@@ -1,3 +1,8 @@
+app:
+  # The embedded test cluster has only 1 broker (see the comment on @EmbeddedKafka in AbstractKafkaTest),
+  # so a topic cannot have more than 1 replica. TODO: change back to 3 / 2 once the Kafka bug is fixed.
+  topic-replicas: 1
+  topic-min-insync-replicas: 1
 spring:
   kafka:
     consumer:

@@ -18,6 +18,10 @@ import java.util.Map;
 public class KafkaConfig {
     @Value("${app.topic-name}")
     private String topicName;
+    @Value("${app.topic-replicas}")
+    private int topicReplicas;
+    @Value("${app.topic-min-insync-replicas}")
+    private String topicMinInsyncReplicas;
     @Value("${spring.kafka.producer.bootstrap-servers}")
     private String bootstrapServers;
     @Value("${spring.kafka.producer.key-serializer}")
@@ -42,9 +46,9 @@ public class KafkaConfig {
         return TopicBuilder
                 .name(topicName)
                 .partitions(3)
-                .replicas(3)
+                .replicas(topicReplicas)
                 // min.insync.replicas for number of producers that must response for acknowledgement
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", topicMinInsyncReplicas)
                 .build();
     }
 

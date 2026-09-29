@@ -1,5 +1,8 @@
 app:
   topic-name: product-created-events-topic
+  # each partition is copied to 3 brokers; a write with acks=all needs at least 2 of them in sync
+  topic-replicas: 3
+  topic-min-insync-replicas: 2
 
 server:
   # port could be 0, which means any available port
@@ -14,7 +17,7 @@ spring:
       bootstrap-servers: localhost:9092,localhost:9094
       # serializer is used to serialize key values to byte array before sending them over the network
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
       # spring.kafka.producer.acks=[all|1|0] for producer acknowledgement
       # 1 means one acknowledgement from kafka producer, which is the default value
       # all means that producer will wait for acknowledgement from all in-sync replicas
