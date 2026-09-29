@@ -17,7 +17,7 @@ spring:
       bootstrap-servers: localhost:9092,localhost:9094
       # serializer is used to serialize key values to byte array before sending them over the network
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      value-serializer: io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer
       # spring.kafka.producer.acks=[all|1|0] for producer acknowledgement
       # 1 means one acknowledgement from kafka producer, which is the default value
       # all means that producer will wait for acknowledgement from all in-sync replicas
@@ -26,6 +26,8 @@ spring:
       # used together with spring.kafka.producer.properties.retry.backoff.ms
       # retries: 10
       properties:
+        # Where the serializer registers and looks up schemas
+        schema.registry.url: http://localhost:8081
         # retry:
           # backoff:
             # spring.kafka.producer.properties.retry.backoff.ms=1000, default is 100ms, time interval between reties.

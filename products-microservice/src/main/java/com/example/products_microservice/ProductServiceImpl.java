@@ -1,6 +1,6 @@
 package com.example.products_microservice;
 
-import com.example.core.ProductCreatedEvent;
+import com.example.core.proto.ProductCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -29,7 +29,13 @@ public class ProductServiceImpl implements ProductService {
     private String createProductSynchronously(CreateProductRequest product) throws InterruptedException, ExecutionException {
         String productId = UUID.randomUUID().toString();
         // TODO: persist product into database before publishing an event.
-        ProductCreatedEvent productCreatedEvent = new ProductCreatedEvent(productId, product.title(), product.price(), product.quantity());
+        ProductCreatedEvent productCreatedEvent = ProductCreatedEvent.newBuilder()
+                .setProductId(productId)
+                .setTitle(product.title())
+                // Protobuf has no decimal type; the .proto uses a string to keep the exact value
+                .setPrice(product.price().toPlainString())
+                .setQuantity(product.quantity())
+                .build();
         log.info("Before publishing a {}", ProductCreatedEvent.class.getSimpleName());
 
         ProducerRecord<String, ProductCreatedEvent> record = new ProducerRecord<>(topicName, productId, productCreatedEvent);
@@ -47,7 +53,13 @@ public class ProductServiceImpl implements ProductService {
     private String createProductAsynchronously(CreateProductRequest product) {
         String productId = UUID.randomUUID().toString();
         // TODO: persist product into database before publishing an event.
-        ProductCreatedEvent productCreatedEvent = new ProductCreatedEvent(productId, product.title(), product.price(), product.quantity());
+        ProductCreatedEvent productCreatedEvent = ProductCreatedEvent.newBuilder()
+                .setProductId(productId)
+                .setTitle(product.title())
+                // Protobuf has no decimal type; the .proto uses a string to keep the exact value
+                .setPrice(product.price().toPlainString())
+                .setQuantity(product.quantity())
+                .build();
         // send message asynchronously:
         CompletableFuture<SendResult<String, ProductCreatedEvent>> future = kafkaTemplate.send(topicName, productId, productCreatedEvent);
         future.whenComplete((r, e) -> {

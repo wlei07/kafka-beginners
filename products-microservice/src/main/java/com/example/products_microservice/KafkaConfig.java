@@ -1,6 +1,7 @@
 package com.example.products_microservice;
 
-import com.example.core.ProductCreatedEvent;
+import com.example.core.proto.ProductCreatedEvent;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,8 @@ public class KafkaConfig {
     private boolean idempotence;
     @Value("${spring.kafka.producer.properties.max.in.flight.requests.per.connection}")
     private Integer inflightRequests;
+    @Value("${spring.kafka.producer.properties.schema.registry.url}")
+    private String schemaRegistryUrl;
 
     @Bean
     NewTopic createTopic() {
@@ -74,6 +77,7 @@ public class KafkaConfig {
         // max.in.flight.requests.per.connection <= 5
         config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, idempotence);
         config.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, inflightRequests);
+        config.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
         return config;
     }
 
