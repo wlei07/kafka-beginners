@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.core.ProductCreatedEvent;
+import com.example.core.proto.ProductCreatedEvent;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @EmbeddedKafka
-@SpringBootTest(properties = "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}")
+@SpringBootTest(properties = {
+        "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}",
+        // "mock://" = in-memory Schema Registry inside the test JVM, shared by the test producer and the listener
+        "spring.kafka.consumer.properties.schema.registry.url=mock://email-notification-test"
+})
 class ProductCreatedEventHandlerTest {
     @MockitoBean
     private ProcessedEventRepository processedEventRepository;
@@ -46,9 +50,14 @@ class ProductCreatedEventHandlerTest {
     @Test
     void handle() throws ExecutionException, InterruptedException {
         // Arrange
-        ProductCreatedEvent productCreatedEvent = new ProductCreatedEvent(UUID.randomUUID().toString(), "Test product", new BigDecimal(100), 1);
+        ProductCreatedEvent productCreatedEvent = ProductCreatedEvent.newBuilder()
+                .setProductId(UUID.randomUUID().toString())
+                .setTitle("Test product")
+                .setPrice(new BigDecimal(100).toPlainString())
+                .setQuantity(1)
+                .build();
         String messageId = UUID.randomUUID().toString();
-        String messageKey = productCreatedEvent.productId();
+        String messageKey = productCreatedEvent.getProductId();
         ProducerRecord<String, Object> record = new ProducerRecord<>("product-created-events-topic", messageKey, productCreatedEvent);
         record.headers().add("messageId", messageId.getBytes());
         record.headers().add(KafkaHeaders.RECEIVED_KEY, messageKey.getBytes());
@@ -69,10 +78,10 @@ class ProductCreatedEventHandlerTest {
         verify(productCreatedEventHandler, timeout(5000).times(1)).handle(
                 argThat(productCreatedEventArg -> {
                     assertThat(productCreatedEventArg).isNotNull();
-                    assertThat(productCreatedEventArg.productId()).isEqualTo(messageKey);
-                    assertThat(productCreatedEventArg.title()).isEqualTo("Test product");
-                    assertThat(productCreatedEventArg.price()).isEqualTo(new BigDecimal(100));
-                    assertThat(productCreatedEventArg.quantity()).isEqualTo(1);
+                    assertThat(productCreatedEventArg.getProductId()).isEqualTo(messageKey);
+                    assertThat(productCreatedEventArg.getTitle()).isEqualTo("Test product");
+                    assertThat(new BigDecimal(productCreatedEventArg.getPrice())).isEqualByComparingTo(new BigDecimal(100));
+                    assertThat(productCreatedEventArg.getQuantity()).isEqualTo(1);
                     return true;
                 }),
                 argThat(messageIdArg -> {

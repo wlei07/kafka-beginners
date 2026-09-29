@@ -6,7 +6,7 @@ app:
 
 server:
   # port could be 0, which means any available port
-  port: 8080
+  port: 8083
 
 spring:
   application:
