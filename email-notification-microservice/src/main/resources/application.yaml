@@ -25,8 +25,9 @@ spring:
       # consumer group:
       # group-id: email-notification-consumer-group
       properties:
-        # Where the deserializer looks up schemas (by the schema ID at the start of each message)
-        schema.registry.url: http://localhost:8081
+        # Where the deserializer looks up schemas (by the schema ID at the start of each message), Apicurio's native API
+        apicurio.registry.url: http://localhost:8081/apis/registry/v3
         # Which generated class to create; without it you get a generic DynamicMessage.
-        # This replaces spring.json.trusted.packages: the class comes from our config, not from the message.
-        specific.protobuf.value.type: com.example.core.proto.ProductCreatedEvent
+        # Note: Apicurio's serializer also writes the Java class name into the "apicurio.value.msgType" header,
+        # and when that header is present the deserializer uses it instead of this setting.
+        apicurio.registry.deserializer.value.return-class: com.example.core.proto.ProductCreatedEvent

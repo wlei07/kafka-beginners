@@ -1,7 +1,7 @@
 package com.example.products_microservice;
 
 import com.example.core.proto.ProductCreatedEvent;
-import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import io.apicurio.registry.serde.config.SerdeConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,8 +41,10 @@ public class KafkaConfig {
     private boolean idempotence;
     @Value("${spring.kafka.producer.properties.max.in.flight.requests.per.connection}")
     private Integer inflightRequests;
-    @Value("${spring.kafka.producer.properties.schema.registry.url}")
+    @Value("${spring.kafka.producer.properties.apicurio.registry.url}")
     private String schemaRegistryUrl;
+    @Value("${spring.kafka.producer.properties.apicurio.registry.auto-register}")
+    private boolean autoRegisterSchema;
 
     @Bean
     NewTopic createTopic() {
@@ -77,7 +79,8 @@ public class KafkaConfig {
         // max.in.flight.requests.per.connection <= 5
         config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, idempotence);
         config.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, inflightRequests);
-        config.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+        config.put(SerdeConfig.REGISTRY_URL, schemaRegistryUrl);
+        config.put(SerdeConfig.AUTO_REGISTER_ARTIFACT, autoRegisterSchema);
         return config;
     }
 

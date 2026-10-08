@@ -1,9 +1,8 @@
 package com.example.products_microservice;
 
 import com.example.core.proto.ProductCreatedEvent;
-import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
+import io.apicurio.registry.serde.config.SerdeConfig;
+import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -85,10 +84,10 @@ class ProductServiceImplTest extends AbstractKafkaTest {
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaBroker.getBrokersAsString());
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        properties.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, KafkaProtobufDeserializer.class);
-        properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, environment.getProperty("spring.kafka.producer.properties.schema.registry.url"));
-        // Without this, the deserializer returns a generic DynamicMessage instead of our generated class
-        properties.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, ProductCreatedEvent.class.getName());
+        properties.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, ProtobufKafkaDeserializer.class);
+        properties.put(SerdeConfig.REGISTRY_URL, environment.getProperty("spring.kafka.producer.properties.apicurio.registry.url"));
+        // Which generated class to create, instead of a generic DynamicMessage
+        properties.put(SerdeConfig.DESERIALIZER_SPECIFIC_VALUE_RETURN_CLASS, ProductCreatedEvent.class.getName());
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, environment.getProperty("spring.kafka.consumer.group-id"));
         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, environment.getProperty("spring.kafka.consumer.auto-offset-reset"));
         return properties;

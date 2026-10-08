@@ -1,10 +1,9 @@
 package com.example.demo;
 
 import com.google.protobuf.Message;
-import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
-import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer;
+import io.apicurio.registry.serde.config.SerdeConfig;
+import io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer;
+import io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -42,11 +41,11 @@ public class KafkaConsumerConfiguration {
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.getProperty("spring.kafka.consumer.bootstrap-servers"));
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         // config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        // It is a wrapper around KafkaProtobufDeserializer, can catch any deserialization exceptions.
+        // It is a wrapper around ProtobufKafkaDeserializer, can catch any deserialization exceptions.
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, KafkaProtobufDeserializer.class);
-        config.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, environment.getProperty("spring.kafka.consumer.properties.schema.registry.url"));
-        config.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, environment.getProperty("spring.kafka.consumer.properties.specific.protobuf.value.type"));
+        config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, ProtobufKafkaDeserializer.class);
+        config.put(SerdeConfig.REGISTRY_URL, environment.getProperty("spring.kafka.consumer.properties.apicurio.registry.url"));
+        config.put(SerdeConfig.DESERIALIZER_SPECIFIC_VALUE_RETURN_CLASS, environment.getProperty("spring.kafka.consumer.properties.apicurio.registry.deserializer.value.return-class"));
         config.put(ConsumerConfig.GROUP_ID_CONFIG, environment.getProperty("consumer.group-id"));
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, environment.getProperty("spring.kafka.consumer.auto-offset-reset"));
         return new DefaultKafkaConsumerFactory<>(config);
@@ -82,13 +81,16 @@ public class KafkaConsumerConfiguration {
     ProducerFactory<String, Object> producerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.getProperty("spring.kafka.consumer.bootstrap-servers"));
-        config.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, environment.getProperty("spring.kafka.consumer.properties.schema.registry.url"));
+        config.put(SerdeConfig.REGISTRY_URL, environment.getProperty("spring.kafka.consumer.properties.apicurio.registry.url"));
+        // The -dlt topic gets its own schema entry ("<topic>-value"), which must be created on first use.
+        // Apicurio's default is false (Confluent's was true).
+        config.put(SerdeConfig.AUTO_REGISTER_ARTIFACT, true);
         // This producer only writes failed messages to the dead letter topic (-dlt). It gets 2 kinds of values:
-        // - the Protobuf object, when our handler threw an exception  -> KafkaProtobufSerializer
+        // - the Protobuf object, when our handler threw an exception  -> ProtobufKafkaSerializer
         // - the raw bytes, when the message could not be deserialized -> ByteArraySerializer (forwarded unchanged)
         Map<Class<?>, Serializer<?>> valueSerializers = new LinkedHashMap<>();
         valueSerializers.put(byte[].class, new ByteArraySerializer());
-        valueSerializers.put(Message.class, new KafkaProtobufSerializer<>());
+        valueSerializers.put(Message.class, new ProtobufKafkaSerializer<>());
         // assignable = true: our generated ProductCreatedEvent matches the Message.class entry
         return new DefaultKafkaProducerFactory<>(config, new StringSerializer(), new DelegatingByTypeSerializer(valueSerializers, true));
     }

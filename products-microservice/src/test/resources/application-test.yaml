@@ -5,11 +5,8 @@ app:
   topic-min-insync-replicas: 1
 spring:
   kafka:
-    producer:
-      properties:
-        # "mock://" = in-memory Schema Registry inside the test JVM, so tests don't need the real one on :8081.
-        # Producer and test consumer use the same name, so they share the same registry.
-        schema.registry.url: mock://products-microservice-test
+    # spring.kafka.producer.properties.apicurio.registry.url is set by AbstractKafkaTest:
+    # it points to the Apicurio Registry container that the tests start.
     consumer:
       group-id: product-created-events
       auto-offset-reset: earliest

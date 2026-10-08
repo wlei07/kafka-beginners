@@ -71,22 +71,30 @@ services:
       TZ: "Europe/Brussels"
     volumes:
       - ./kafka-3:/var/lib/kafka
-  schema-registry:
-    image: confluentinc/cp-schema-registry:8.3.1
-    container_name: schema-registry
+  # Apicurio Registry: the same schema registry product the platform uses (TFC-STD-001).
+  # Native API:              http://localhost:8081/apis/registry/v3  (used by the services' serializers)
+  # Confluent-compatible API: http://localhost:8081/apis/ccompat/v7  (used by Conduktor)
+  apicurio-registry:
+    image: apicurio/apicurio-registry:3.3.3
+    container_name: apicurio-registry
+    # Host port 8081 -> container port 8080, so the services keep using localhost:8081
     ports:
-      - '8081:8081'
+      - '8081:8080'
     depends_on:
       - kafka-1
       - kafka-2
       - kafka-3
     environment:
-      # Name used by Schema Registry to identify itself to other containers
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
-      # Schemas are stored in the "_schemas" topic, so it talks to Kafka via the INTERNAL listener (9090)
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka-1:9090,PLAINTEXT://kafka-2:9090,PLAINTEXT://kafka-3:9090
+      # Schemas are stored in the "kafkasql-journal" topic, so it talks to Kafka via the INTERNAL listener (9090)
+      APICURIO_STORAGE_KIND: kafkasql
+      APICURIO_KAFKASQL_BOOTSTRAP_SERVERS: kafka-1:9090,kafka-2:9090,kafka-3:9090
       TZ: "Europe/Brussels"
+    healthcheck:
+      test: curl -f http://localhost:8080/health/ready || exit 1
+      interval: 10s
+      start_period: 20s
+      timeout: 5s
+      retries: 5
   # Conduktor stores users, settings and saved queries in PostgreSQL (version 13 or higher)
   conduktor-postgres:
     image: postgres:17
@@ -119,8 +127,9 @@ services:
       CDK_CLUSTERS_0_ID: kafka-beginners
       CDK_CLUSTERS_0_NAME: kafka-beginners
       CDK_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9090,kafka-2:9090,kafka-3:9090
-      # Inside Docker, so use the container name, not localhost
-      CDK_CLUSTERS_0_SCHEMAREGISTRY_URL: http://schema-registry:8081
+      # Inside Docker, so use the container name and container port, not localhost:8081.
+      # Conduktor speaks the Confluent registry API, which Apicurio offers under /apis/ccompat/v7.
+      CDK_CLUSTERS_0_SCHEMAREGISTRY_URL: http://apicurio-registry:8080/apis/ccompat/v7
       TZ: "Europe/Brussels"
     volumes:
       - conduktor-data:/var/conduktor

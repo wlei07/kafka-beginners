@@ -13,9 +13,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.web.client.RestTemplate;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.utility.DockerImageName;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -32,12 +37,28 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @EmbeddedKafka
-@SpringBootTest(properties = {
-        "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}",
-        // "mock://" = in-memory Schema Registry inside the test JVM, shared by the test producer and the listener
-        "spring.kafka.consumer.properties.schema.registry.url=mock://email-notification-test"
-})
+@SpringBootTest(properties = "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}")
 class ProductCreatedEventHandlerTest {
+    // Apicurio has no in-memory "mock://" registry like Confluent's, so the test starts a real one in Docker,
+    // shared by the test producer and the listener. Testcontainers removes it when the JVM exits.
+    // Same version as the apicurio-registry image in infrastructure/compose.yaml.
+    private static final int APICURIO_PORT = 8080;
+    private static final GenericContainer<?> APICURIO_REGISTRY =
+            new GenericContainer<>(DockerImageName.parse("apicurio/apicurio-registry:3.3.3"))
+                    .withExposedPorts(APICURIO_PORT)
+                    .waitingFor(Wait.forHttp("/health/ready").forPort(APICURIO_PORT));
+
+    static {
+        APICURIO_REGISTRY.start();
+    }
+
+    @DynamicPropertySource
+    static void apicurioRegistryUrl(DynamicPropertyRegistry registry) {
+        registry.add("spring.kafka.consumer.properties.apicurio.registry.url",
+                () -> "http://" + APICURIO_REGISTRY.getHost() + ":" + APICURIO_REGISTRY.getMappedPort(APICURIO_PORT)
+                        + "/apis/registry/v3");
+    }
+
     @MockitoBean
     private ProcessedEventRepository processedEventRepository;
     @MockitoBean
